@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AdsPro Report</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>AdsPro Report</h1>
+        <p>Theo dõi - phân tích - tối ưu quảng cáo theo thời gian thực</p>
+      </div>
+      <div class="platforms">
+        <span>Meta Ads</span>
+        <span>TikTok Ads</span>
+        <span>Google Ads</span>
+        <span>TikTok Shop</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="controls card">
+        <h2>Tổng quan Dashboard</h2>
+        <div class="tabs" role="tablist" aria-label="Khoảng thời gian">
+          <button class="tab active" data-range="today">Hôm nay</button>
+          <button class="tab" data-range="yesterday">Hôm qua</button>
+          <button class="tab" data-range="7days">7 ngày</button>
+        </div>
+      </section>
+
+      <section class="kpi-grid" id="kpiGrid"></section>
+
+      <section class="card chart-card">
+        <div class="chart-header">
+          <h2>Tăng trưởng hiệu suất</h2>
+          <div class="tabs small" role="tablist" aria-label="Chu kỳ biểu đồ">
+            <button class="period active" data-period="day">Ngày</button>
+            <button class="period" data-period="week">Tuần</button>
+            <button class="period" data-period="month">Tháng</button>
+          </div>
+        </div>
+        <canvas id="performanceChart" height="120"></canvas>
+      </section>
+
+      <section class="split">
+        <article class="card">
+          <h2>So sánh chiến dịch</h2>
+          <p class="muted">Camp A vs Camp B • Creative • Tệp khách hàng</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Chỉ số</th>
+                <th>Camp A</th>
+                <th>Camp B</th>
+              </tr>
+            </thead>
+            <tbody id="campaignCompare"></tbody>
+          </table>
+        </article>
+
+        <article class="card">
+          <h2>Cảnh báo thông minh</h2>
+          <ul id="alerts" class="alerts"></ul>
+        </article>
+      </section>
+
+      <section class="split">
+        <article class="card">
+          <h2>Báo cáo lợi nhuận thực</h2>
+          <p class="muted">Mô phỏng theo cấu hình: Giá vốn, phí sàn, ship, tỷ lệ hoàn, thuế.</p>
+          <div class="profit-boxes">
+            <div>
+              <h3>Lợi nhuận / đơn</h3>
+              <strong id="profitPerOrder"></strong>
+            </div>
+            <div>
+              <h3>Lợi nhuận / camp</h3>
+              <strong id="profitPerCampaign"></strong>
+            </div>
+            <div>
+              <h3>Lợi nhuận ròng / ngày</h3>
+              <strong id="dailyNetProfit"></strong>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2>Tự động gửi báo cáo</h2>
+          <ul class="schedule">
+            <li>08:00 • Báo cáo hôm qua → Telegram / Email</li>
+            <li>23:00 • Tổng kết trong ngày</li>
+            <li>Thứ 2 • Báo tuần</li>
+            <li>Ngày cuối tháng • Báo tháng</li>
+          </ul>
+          <h3>Phiên bản Pro</h3>
+          <ul class="pro-list">
+            <li>AI đề xuất tăng ngân sách</li>
+            <li>Gợi ý tắt camp lỗ</li>
+            <li>Phân tích creative giữ chân tốt</li>
+            <li>Dự báo doanh thu 30 ngày</li>
+          </ul>
+        </article>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
