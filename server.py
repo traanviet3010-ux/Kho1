@@ -43,65 +43,144 @@ def product(data):
                 shop=clean(data.get("shop"),80) or "Cửa hàng trực tuyến",
                 cta=clean(data.get("cta"),55) or "Xem sản phẩm trên Shopee",
                 accent=clean(data.get("accent"),12) if data.get("accent") in ("orange","green","blue","purple") else "orange")
+def product_ids(url):
+    """Identify the shop/item pair from permitted public Shopee URLs."""
+    parsed=urlparse(url)
+    path=parsed.path
+    patterns=[
+        r"/product/(\d+)/(\d+)(?:[/?-]|$)",
+        r"-i\.(\d+)\.(\d+)(?:[/?-]|$)",
+        r"/opaanlp/(\d+)/(\d+)(?:[/?-]|$)",
+        r"/i\.(\d+)\.(\d+)(?:[/?-]|$)",
+    ]
+    for pat in patterns:
+        m=re.search(pat,path,re.I)
+        if m:return m.group(1),m.group(2)
+    from urllib.parse import parse_qs
+    q=parse_qs(parsed.query)
+    shop=(q.get("shopid") or q.get("shop_id") or q.get("shopId") or [""])[0]
+    item=(q.get("itemid") or q.get("item_id") or q.get("itemId") or [""])[0]
+    return (shop,item) if shop.isdecimal() and item.isdecimal() else ("","")
+
+def affiliate_product(url, item):
+    """Shopee Affiliate Open API: only available after account approval/credentials."""
+    app=os.getenv("SHOPEE_AFFILIATE_APP_ID","").strip()
+    secret=os.getenv("SHOPEE_AFFILIATE_SECRET","").strip()
+    if not app or not secret or not item or not item.isdecimal():return None
+    import hashlib,time
+    query="{ productOfferV2(itemId: "+item+", page: 1, limit: 10) { nodes { itemId shopId productName priceMin priceMax imageUrl productLink shopName } } }"
+    payload=json.dumps({"query":query},ensure_ascii=False,separators=(",",":"))
+    timestamp=str(int(time.time()))
+    sig=hashlib.sha256((app+timestamp+payload+secret).encode()).hexdigest()
+    headers={"Authorization":f"SHA256 Credential={app}, Timestamp={timestamp}, Signature={sig}","Content-Type":"application/json"}
+    try:
+        resp=requests.post("https://open-api.affiliate.shopee.vn/graphql",data=payload.encode(),headers=headers,timeout=(5,12))
+        resp.raise_for_status()
+        result=resp.json()
+        nodes=(((result.get("data") or {}).get("productOfferV2") or {}).get("nodes") or [])
+        match=next((n for n in nodes if str(n.get("itemId"))==item),None)
+        if not match:return None
+        value=match.get("priceMin") or match.get("priceMax") or ""
+        return dict(title=clean(match.get("productName"),180),shop=clean(match.get("shopName"),80),
+                    price=clean(value,35),currency="VNĐ",images=[match["imageUrl"]] if image_url(match.get("imageUrl")) else [],
+                    description="",source_url=url,extraction_method="affiliate_api")
+    except (requests.RequestException,ValueError,KeyError,TypeError):return None
+
 def extract(url):
     if not allowed(url): raise ValueError("Chỉ hỗ trợ đường dẫn HTTPS Shopee hợp lệ.")
     sess=requests.Session()
-    sess.headers.update({"User-Agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/125 Safari/537.36","Accept":"text/html,application/xhtml+xml"})
+    sess.headers.update({"User-Agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36","Accept":"text/html,application/xhtml+xml","Accept-Language":"vi-VN,vi;q=0.9,en;q=0.8"})
     current=url
-    for _ in range(6):
-        if not allowed(current): raise ValueError("Shopee chuyển hướng ra ngoài miền cho phép.")
-        r=sess.get(current,timeout=(4,12),allow_redirects=False,stream=True)
+    redirected=False
+    for step in range(9):
+        if not allowed(current): raise ValueError("Link chuyển hướng ngoài trang Shopee, không thể truy cập tự động.")
+        try:
+            r=sess.get(current,timeout=(5,14),allow_redirects=False,stream=True)
+        except requests.RequestException as ex:
+            raise ValueError("Không kết nối được tới Shopee. Hãy thử link đầy đủ của sản phẩm.") from ex
         if r.status_code in (301,302,303,307,308):
-            nxt=r.headers.get("Location"); r.close()
-            if not nxt: raise ValueError("Chuyển hướng không hợp lệ.")
+            nxt=r.headers.get("Location");r.close()
+            if not nxt:raise ValueError("Shopee chuyển hướng không có địa chỉ đích.")
             current=urljoin(current,nxt)
+            redirected=True
             continue
-        if r.status_code in (403,429):
-            r.close(); raise ValueError("Shopee đang chặn truy cập tự động. Hãy nhập dữ liệu thủ công.")
+        if r.status_code in (403,429,503):
+            r.close()
+            raise ValueError("Shopee đang hạn chế truy cập tự động từ máy chủ Render. Cần API chính thức hoặc nhập dữ liệu sản phẩm.")
         r.raise_for_status()
         if "html" not in r.headers.get("content-type","").lower():
-            r.close(); raise ValueError("Link này không trả về HTML.")
-        data=bytearray()
+            r.close();raise ValueError("Shopee không trả về trang HTML sản phẩm.")
+        content=bytearray()
         for part in r.iter_content(65536):
-            data.extend(part)
-            if len(data)>2000000: r.close(); raise ValueError("Trang quá lớn.")
-        html=data.decode(r.encoding or "utf-8","replace");r.close()
+            content.extend(part)
+            if len(content)>2500000:
+                r.close();raise ValueError("Trang quá lớn.")
+        encoding=r.encoding or "utf-8"
+        if encoding.lower() in ("iso-8859-1","ascii"):encoding="utf-8"
+        html=content.decode(encoding,"replace")
+        r.close()
         soup=BeautifulSoup(html,"html.parser")
-        result=dict(source_url=current,title="",price="",description="",images=[],shop="",currency="฿" if ".co.th" in current else "VNĐ")
-        for t in soup.find_all("script",attrs={"type":re.compile("ld\+json",re.I)}):
-            try: objs=json.loads(t.string or t.get_text() or "")
+        shop,item=product_ids(current)
+        result=dict(source_url=current,short_url=url if redirected else "",shop_id=shop,item_id=item,
+                    title="",price="",description="",images=[],shop="",currency="฿" if ".co.th" in current else "VNĐ",
+                    extraction_method="html_metadata")
+        # Some Shopee short links return an interstitial with a canonical product link.
+        canonical=soup.find("link",attrs={"rel":"canonical"})
+        deep=canonical.get("href","") if canonical else ""
+        if not shop and not item and deep and allowed(deep) and deep!=current:
+            dshop,ditem=product_ids(deep)
+            if dshop and ditem:result["source_url"]=deep;shop,item=dshop,ditem
+        result["shop_id"]=shop;result["item_id"]=item
+        for tag in soup.find_all("script",attrs={"type":re.compile(r"ld\+json",re.I)}):
+            try: objs=json.loads(tag.string or tag.get_text() or "")
             except (ValueError,TypeError):continue
             queue=objs if isinstance(objs,list) else [objs]
             while queue:
-                o=queue.pop()
-                if not isinstance(o,dict):continue
-                graph=o.get("@graph",[])
+                obj=queue.pop()
+                if not isinstance(obj,dict):continue
+                graph=obj.get("@graph",[])
                 if isinstance(graph,list):queue.extend(graph)
-                typ=o.get("@type",[])
-                if (typ=="Product" or (isinstance(typ,list) and "Product" in typ)):
-                    result["title"]=clean(o.get("name"),180)
-                    result["description"]=clean(o.get("description"),1600)
-                    pics=o.get("image",[])
-                    if isinstance(pics,str): pics=[pics]
-                    for v in (pics if isinstance(pics,list) else []):
-                        if isinstance(v,str) and image_url(v):result["images"].append(v)
-                    offer=o.get("offers",{})
-                    if isinstance(offer,list):offer=offer[0] if offer else {}
-                    if isinstance(offer,dict):
-                        result["price"]=clean(offer.get("price"),35)
-                        curr=clean(offer.get("priceCurrency"),8)
-                        if curr:result["currency"]={"THB":"฿","VND":"VNĐ"}.get(curr,curr)
-        def meta(key,attribute="property"):
-            t=soup.find("meta",attrs={attribute:key})
-            return clean(t.get("content"),2000) if t else ""
-        result["title"]=result["title"] or meta("og:title")
+                typ=obj.get("@type",[])
+                if typ=="Product" or (isinstance(typ,list) and "Product" in typ):
+                    result["title"]=clean(obj.get("name"),180)
+                    result["description"]=clean(obj.get("description"),2400)
+                    photos=obj.get("image",[])
+                    if isinstance(photos,str):photos=[photos]
+                    for photo in photos if isinstance(photos,list) else []:
+                        if isinstance(photo,dict):photo=photo.get("url") or photo.get("contentUrl") or ""
+                        if image_url(photo):result["images"].append(photo)
+                    offers=obj.get("offers",{})
+                    if isinstance(offers,list):offers=offers[0] if offers else {}
+                    if isinstance(offers,dict):
+                        result["price"]=clean(offers.get("price") or offers.get("lowPrice"),35)
+                        code=clean(offers.get("priceCurrency"),8)
+                        if code:result["currency"]={"THB":"฿","VND":"VNĐ"}.get(code,code)
+        def meta(key,attr="property"):
+            tag=soup.find("meta",attrs={attr:key})
+            return clean(tag.get("content"),2000) if tag else ""
+        result["title"]=result["title"] or meta("og:title") or meta("twitter:title","name")
         result["description"]=result["description"] or meta("og:description") or meta("description","name")
-        img=meta("og:image")
-        if image_url(img):result["images"].insert(0,img)
+        result["price"]=result["price"] or meta("product:price:amount")
+        for image in [meta("og:image"),meta("twitter:image","name"),meta("twitter:image")]:
+            if image_url(image):result["images"].insert(0,image)
         result["images"]=list(dict.fromkeys(result["images"]))[:8]
-        if not result["title"] and not result["images"]:raise ValueError("Không thấy dữ liệu công khai. Hãy tự nhập sản phẩm.")
+        generic=not result["title"] or (result["title"].lower().startswith(("shopee việt nam","shopee vietnam","shopee |","shopee -","shopee:")))
+        if generic:result["title"]=""
+        # If HTML lacks product data, try the authenticated Affiliate API (only if configured).
+        if not result["title"]:
+            affiliate=affiliate_product(result["source_url"],item)
+            if affiliate:
+                result.update(affiliate)
+                result["short_url"]=url if redirected else ""
+                result["shop_id"]=shop;result["item_id"]=item
+        if not result["title"]:
+            raise ValueError("Đã mở link Shopee"+(" và nhận dạng mã sản phẩm "+item if item else "")+
+                             ", nhưng không có tên/giá/ảnh công khai trong HTML. Shopee tải dữ liệu bằng JavaScript hoặc chặn truy cập từ Render. "+
+                             ("API Affiliate chưa được cấu hình. " if not os.getenv("SHOPEE_AFFILIATE_APP_ID") else "API Affiliate không có sản phẩm này. ")+
+                             "Hãy thử link sản phẩm đầy đủ hoặc nhập nội dung đã sao chép từ trang Shopee.")
         return result
-    raise ValueError("Link chuyển hướng quá nhiều lần.")
+    raise ValueError("Link rút gọn chuyển hướng quá nhiều lần. Hãy dùng link sản phẩm gốc.")
+
 def landing(data):
     p=product(data); e=lambda v:escape(str(v),quote=True)
     accent={"orange":"#eb623b","green":"#16815d","blue":"#2669d7","purple":"#6645cf"}[p["accent"]]
