@@ -123,7 +123,8 @@ class Handler(BaseHTTPRequestHandler):
     def auth(self):
         if urlparse(self.path).path=="/health":return True
         pw=os.getenv("TOOL_PASSWORD","")
-        if not pw:return True
+        if not pw:
+            self.send_response(503);self.send_header("Content-Type","text/plain; charset=utf-8");self.end_headers();self.wfile.write("Tool access is not configured".encode());return False
         user=secret=""
         try:
             h=self.headers.get("Authorization","")
