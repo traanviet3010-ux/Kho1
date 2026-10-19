@@ -9,3 +9,7 @@ This public frontend is purely for visual demonstration. Its 7/14/30-day filters
 - Static preview: Render Free, auto deploy disabled.
 
 **Never enter real advertising credentials or business data into this preview.**
+
+## Browser-only Studio v0.3
+
+Draft sample Thai scripts, download TXT, create HTML landing-page drafts, and change sample task statuses. All writes are intercepted by `browser-studio.js` and saved only to browser localStorage. Other writes remain blocked. Never store personal/customer data in this demo. No real AI, video MP4, Webcake publishing or Ads API connection.

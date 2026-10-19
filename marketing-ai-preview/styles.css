@@ -13,3 +13,5 @@
 .trend-pair i.revenue{background:var(--cyan)}
 .trend-column small{font-size:9px;white-space:nowrap;color:var(--muted)}
 @media(max-width:640px){.report-tools{padding:12px;gap:9px}.report-filter{min-width:100px}.report-tools button{width:100%}.trend-column{min-width:28px}.trend-grid{gap:4px}}
+
+.studio-download{margin-top:14px;min-height:40px;white-space:normal}@media(max-width:640px){.studio-download{width:100%}}
