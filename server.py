@@ -18,7 +18,11 @@ def allowed(url):
         return u.scheme == "https" and bool(h) and not u.username and not u.password and u.port in (None,443) and any(h == d or h.endswith("." + d) for d in DOMAINS)
     except Exception: return False
 def image_url(v):
-    if not isinstance(v, str) or len(v)>2500: return ""
+    if not isinstance(v, str): return ""
+    # Compressed user-selected images may be embedded directly into exported HTML.
+    if v.startswith("data:image/jpeg;base64,") or v.startswith("data:image/png;base64,") or v.startswith("data:image/webp;base64,"):
+        return v if len(v)<=1900000 and re.fullmatch(r"data:image/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+",v) else ""
+    if len(v)>2500:return ""
     try:
         u=urlparse(v.strip())
         return v.strip() if u.scheme=="https" and u.hostname and not u.username and not u.password and u.port in (None,443) else ""
@@ -231,7 +235,7 @@ class Handler(BaseHTTPRequestHandler):
         if path not in ("/api/extract","/api/preview","/api/export/html","/api/export/zip"):return self.api(404,{"error":"Không tìm thấy"})
         try:
             n=int(self.headers.get("Content-Length","0"))
-            if n<1 or n>256000:return self.api(413,{"error":"Dữ liệu không hợp lệ"})
+            if n<1 or n>12000000:return self.api(413,{"error":"Dữ liệu không hợp lệ"})
             data=json.loads(self.rfile.read(n))
             if not isinstance(data,dict):return self.api(400,{"error":"JSON object required"})
             if path=="/api/extract":
