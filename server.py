@@ -90,8 +90,36 @@ def affiliate_product(url, item):
                     description="",source_url=url,extraction_method="affiliate_api")
     except (requests.RequestException,ValueError,KeyError,TypeError):return None
 
+def external_product_data(url):
+    """Optional licensed third-party product-data API, not an official Shopee endpoint.
+    Nothing is sent to this provider unless PRODUCT_DATA_API_KEY is configured.
+    """
+    key=os.getenv("PRODUCT_DATA_API_KEY","").strip()
+    if not key or not allowed(url):return None
+    try:
+        r=requests.get("https://data.addlivetag.com/product-data/product-data.php",
+                       params={"url":url},headers={"X-API-Key":key,"Accept":"application/json"},
+                       timeout=(5,14))
+        r.raise_for_status()
+        body=r.json()
+        if not isinstance(body,dict):return None
+        obj=body.get("productInfo") or (body.get("data") or {}).get("productInfo") or body.get("data") or body
+        if not isinstance(obj,dict):return None
+        title=clean(obj.get("productName"),180)
+        if not title:return None
+        price=obj.get("price")
+        if isinstance(price,(int,float)):price=f"{price:,.0f}".replace(",","." )
+        photo=image_url(obj.get("imageUrl"))
+        return dict(title=title,price=clean(price,35),images=[photo] if photo else [],
+                    shop=clean(obj.get("shopName"),80),currency="VNĐ",description=clean(obj.get("description"),2800),
+                    source_url=url,extraction_method="licensed_third_party")
+    except (requests.RequestException,ValueError,TypeError):return None
+
 def extract(url):
     if not allowed(url): raise ValueError("Chỉ hỗ trợ đường dẫn HTTPS Shopee hợp lệ.")
+    # Try optional authorized data provider first, including unresolvable short links.
+    licensed=external_product_data(url)
+    if licensed:return licensed
     sess=requests.Session()
     sess.headers.update({"User-Agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36","Accept":"text/html,application/xhtml+xml","Accept-Language":"vi-VN,vi;q=0.9,en;q=0.8"})
     current=url
@@ -110,7 +138,7 @@ def extract(url):
             continue
         if r.status_code in (403,429,503):
             r.close()
-            raise ValueError("Shopee đang hạn chế truy cập tự động từ máy chủ Render. Cần API chính thức hoặc nhập dữ liệu sản phẩm.")
+            raise ValueError("Shopee đang hạn chế truy cập tự động từ máy chủ Render. Có thể dùng Shopee Affiliate API hoặc dịch vụ Product Data có API key; hiện có thể dán nội dung và tải ảnh để tạo landing page.")
         r.raise_for_status()
         if "html" not in r.headers.get("content-type","").lower():
             r.close();raise ValueError("Shopee không trả về trang HTML sản phẩm.")
