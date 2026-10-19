@@ -40,11 +40,13 @@ a{color:var(--purple)}.note{font-size:11px;line-height:1.65;color:#8591a4}
 <div class="grid">
 <section class="card"><div class="card-title"><div><h2>✦ Thông tin sản phẩm</h2><small>Lấy thông tin công khai hoặc nhập tay nếu Shopee chặn</small></div></div>
 <div class="pad"><div class="field"><label for="source_url">Link sản phẩm Shopee</label><div class="flex"><input id="source_url" placeholder="https://shopee.vn/product/..." autocomplete="off"><button class="primary" id="extract">↗ Lấy thông tin</button></div><div id="status" class="status" aria-live="polite"></div></div>
+<details class="tip"><summary style="cursor:pointer;font-weight:800;color:#4f45b1">Shopee không lấy được? Nhập nhanh từ nội dung đã sao chép</summary><p>Mở sản phẩm trên Shopee → sao chép tên, giá và phần mô tả → dán vào đây. Tool sẽ giúp điền thông tin. Có thể tải ảnh trực tiếp từ điện thoại.</p><textarea id="pasteProduct" placeholder="Dán tên sản phẩm, giá và mô tả từ Shopee..." style="min-height:115px"></textarea><button class="secondary" id="pasteImport" style="margin-top:7px">Nhận diện thông tin vừa dán</button></details>
 <hr><div class="field"><label for="title">Tên sản phẩm</label><input id="title" placeholder="Tên sản phẩm nổi bật"></div>
 <div class="field"><label for="subtitle">Tiêu đề phụ</label><input id="subtitle" placeholder="Mô tả lợi ích ngắn gọn"></div>
 <div class="two"><div class="field"><label for="price">Giá bán</label><input id="price" placeholder="199.000"></div><div class="field"><label for="old_price">Giá gốc (nếu có)</label><input id="old_price" placeholder="250.000"></div></div>
 <div class="two"><div class="field"><label for="currency">Tiền tệ</label><select id="currency"><option>VNĐ</option><option>฿</option><option>USD</option></select></div><div class="field"><label for="shop">Tên gian hàng</label><input id="shop" placeholder="Tên cửa hàng"></div></div>
 <div class="field"><label for="hero">Ảnh chính (URL HTTPS)</label><input id="hero" placeholder="https://.../product.jpg"></div>
+<div class="field"><label for="photoFiles">Tải ảnh sản phẩm từ điện thoại / máy tính</label><input id="photoFiles" type="file" accept="image/png,image/jpeg,image/webp" multiple><small>Chọn tối đa 8 ảnh; ảnh tự nén trước khi đưa vào HTML xuất ra.</small><div id="photoStatus" class="status"></div></div>
 <div class="field"><label for="images">Ảnh phụ (mỗi dòng 1 URL HTTPS)</label><textarea id="images" placeholder="https://...&#10;https://..."></textarea></div>
 <div class="field"><label for="benefits">Điểm nổi bật (mỗi dòng 1 ý)</label><textarea id="benefits" placeholder="Thiết kế tiện lợi&#10;Thông tin được kiểm tra"></textarea></div>
 <div class="field"><label for="description">Mô tả sản phẩm</label><textarea id="description" placeholder="Thông tin mô tả trung thực từ sản phẩm..."></textarea></div>
@@ -57,9 +59,10 @@ a{color:var(--purple)}.note{font-size:11px;line-height:1.65;color:#8591a4}
 </div></div></main></div>
 <script>
 const $=x=>document.getElementById(x);
+let uploadImages=[];
 const ids=["source_url","title","subtitle","price","old_price","currency","shop","hero","images","benefits","description","accent","cta"];
 const set=(k,v)=>{if($(k))$(k).value=v||""};
-const get=()=>{let d={};ids.forEach(k=>d[k]=$(k).value);d.images=d.images.split("\n").map(x=>x.trim()).filter(Boolean);return d};
+const get=()=>{let d={};ids.forEach(k=>d[k]=$(k).value);d.images=[...uploadImages,...d.images.split("\n").map(x=>x.trim()).filter(Boolean)];if(uploadImages.length)d.hero=uploadImages[0];return d};
 const msg=(s,bad)=>{const el=$("status");el.textContent=s;el.className="status "+(bad?"error":"good")};
 async function request(path,data){let r=await fetch(path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});return r}
 async function preview(){try{let r=await request("/api/preview",get());if(!r.ok)throw Error("HTTP "+r.status);$("preview").srcdoc=await r.text()}catch(e){msg("Không thể hiển thị bản xem trước.",true)}}
@@ -68,6 +71,55 @@ $("extract").disabled=true;msg("Đang lấy thông tin công khai...");try{let r
 let p=v.product;["source_url","title","description","price","old_price","currency","shop"].forEach(k=>{if(p[k])set(k,p[k])});if(p.images&&p.images.length){set("hero",p.images[0]);set("images",p.images.slice(1).join("\n"))}
 msg("Đã lấy metadata. Hãy kiểm tra giá, ảnh và nội dung.");await preview()}catch(e){msg("Không thể kết nối đến máy chủ.",true)}finally{$("extract").disabled=false}}
 async function download(kind){const b=$(kind==="html"?"exportHtml":"exportZip");b.disabled=true;try{let r=await request("/api/export/"+kind,get());if(!r.ok)throw Error("HTTP "+r.status);let u=URL.createObjectURL(await r.blob());let a=document.createElement("a");a.href=u;a.download=kind==="html"?"landing-page.html":"shopee-landing-kit.zip";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);msg("Đã xuất file tải về.")}catch(e){msg("Tạo file thất bại: "+e.message,true)}finally{b.disabled=false}}
+
+function parsePastedProduct(){
+ const t=$("pasteProduct").value.trim();if(!t){msg("Anh hãy dán nội dung sản phẩm trước.",true);return}
+ let lines=t.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+ let productLine=lines.find(x=>!/^https?:\/\//i.test(x)&&x.length>8&&!/^\d+[.,\d]*\s*(₫|đ|VND|฿)/i.test(x))||"";
+ if(productLine)set("title",productLine.slice(0,180));
+ let found=t.match(/(?:₫|đ|VND|฿)\s*[\d.,]+|[\d.,]+\s*(?:₫|đ|VND|฿)/i);
+ if(found){let val=found[0];set("price",(val.match(/[\d.,]+/)||[])[0]||"");if(/฿/.test(val))set("currency","฿")}
+ let urls=[...t.matchAll(/https:\/\/[^\s"'<>]+/g)].map(m=>m[0]);
+ let shopUrl=urls.find(u=>/(?:^https:\/\/|\/)s?\.?shopee\./i.test(u)||/shopee\./i.test(u));
+ if(shopUrl)set("source_url",shopUrl);
+ let photos=urls.filter(u=>/\.(jpg|jpeg|webp|png)(\?|$)/i.test(u));
+ if(photos.length){set("hero",photos[0]);set("images",photos.slice(1).join("\n"))}
+ set("description",lines.slice(1).filter(x=>!/^https?:\/\//i.test(x)).join("\n").slice(0,2400));
+ msg("Đã nhập thông tin từ văn bản. Anh kiểm tra lại tên, giá và hình ảnh nhé.");
+ preview();
+}
+$("pasteImport").addEventListener("click",parsePastedProduct);
+function shrinkImage(file){
+ return new Promise((resolve,reject)=>{
+   if(!/^image\/(png|jpeg|webp)$/.test(file.type)){reject(Error("Chỉ nhận JPG, PNG hoặc WebP."));return}
+   const reader=new FileReader();
+   reader.onload=()=>{
+     const im=new Image();
+     im.onload=()=>{
+       const max=1100;const ratio=Math.min(1,max/Math.max(im.width,im.height));
+       const canvas=document.createElement("canvas");canvas.width=Math.max(1,Math.round(im.width*ratio));canvas.height=Math.max(1,Math.round(im.height*ratio));
+       canvas.getContext("2d").drawImage(im,0,0,canvas.width,canvas.height);
+       resolve(canvas.toDataURL("image/jpeg",0.77));
+     };
+     im.onerror=()=>reject(Error("Ảnh không đọc được"));
+     im.src=reader.result;
+   };
+   reader.onerror=()=>reject(Error("Không mở được tệp ảnh"));
+   reader.readAsDataURL(file);
+ });
+}
+$("photoFiles").addEventListener("change",async()=>{
+  const files=[...$("photoFiles").files].slice(0,8);
+  $("photoStatus").textContent="Đang xử lý "+files.length+" ảnh...";
+  let pictures=[];
+  try{
+    for(const file of files)pictures.push(await shrinkImage(file));
+    uploadImages=pictures;
+    $("photoStatus").textContent="Đã nhận "+pictures.length+" ảnh để dùng trong landing page.";
+    await preview();
+  }catch(e){$("photoStatus").textContent=e.message}
+});
+
 $("extract").addEventListener("click",extract);$("update").addEventListener("click",preview);
 $("exportHtml").addEventListener("click",()=>download("html"));$("exportZip").addEventListener("click",()=>download("zip"));
 $("mobile").addEventListener("click",()=>{ $("viewport").className="viewport mobile";$("mobile").className="selected";$("desktop").className=""});
