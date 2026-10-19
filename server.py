@@ -120,6 +120,11 @@ def extract(url):
     # Try optional authorized data provider first, including unresolvable short links.
     licensed=external_product_data(url)
     if licensed:return licensed
+    # Direct full product URLs provide the item ID even when Shopee blocks HTML.
+    initial_shop,initial_item=product_ids(url)
+    if initial_item:
+        verified=affiliate_product(url,initial_item)
+        if verified:return verified
     sess=requests.Session()
     sess.headers.update({"User-Agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36","Accept":"text/html,application/xhtml+xml","Accept-Language":"vi-VN,vi;q=0.9,en;q=0.8"})
     current=url
@@ -138,6 +143,11 @@ def extract(url):
             continue
         if r.status_code in (403,429,503):
             r.close()
+            # A redirect may already have yielded the canonical item identity.
+            _, blocked_item=product_ids(current)
+            if blocked_item:
+                verified=affiliate_product(current,blocked_item)
+                if verified:return verified
             raise ValueError("Shopee đang hạn chế truy cập tự động từ máy chủ Render. Có thể dùng Shopee Affiliate API hoặc dịch vụ Product Data có API key; hiện có thể dán nội dung và tải ảnh để tạo landing page.")
         r.raise_for_status()
         if "html" not in r.headers.get("content-type","").lower():
