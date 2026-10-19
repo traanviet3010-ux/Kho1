@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Shopee Landing Studio</title><style>
+:root{font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:#17243a;background:#f5f6fa;--purple:#6549ed;--border:#e5e8f1;--muted:#7b879a}*{box-sizing:border-box}
+body{margin:0}.layout{min-height:100vh;display:grid;grid-template-columns:225px 1fr}
+nav{background:#121b31;color:#e5e9ff;padding:26px 19px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column}
+.brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:850;letter-spacing:-.5px}.logo{width:42px;height:42px;background:linear-gradient(135deg,#8267ff,#4a39c7);display:grid;place-items:center;border-radius:12px;color:white;font-weight:900}
+small{color:var(--muted)}nav p{font-size:11px;font-weight:750;color:#7585ac;letter-spacing:1.5px;margin:47px 13px 16px}
+.navitem{padding:13px;background:#28345c;border-radius:10px;font-size:13px;font-weight:750}nav footer{font-size:11px;line-height:1.8;color:#8c97b8;margin-top:auto;padding:16px}
+main{min-width:0}.top{height:76px;border-bottom:1px solid var(--border);background:#fff;display:flex;justify-content:space-between;align-items:center;padding:0 32px}.breadcrumb{font-size:12px;color:#7e8798}.breadcrumb strong{color:#24304b}.live{font-size:11px;color:#168558;background:#e7f7ec;padding:10px 13px;border-radius:30px;font-weight:750}
+.content{max-width:1540px;margin:0 auto;padding:30px 35px}
+h1{font-size:29px;letter-spacing:-1px;margin:0 0 8px}header p{color:var(--muted);font-size:13px;margin:0 0 26px}
+.grid{display:grid;grid-template-columns:minmax(340px,450px) minmax(350px,1fr);align-items:start;gap:22px}
+.card{background:#fff;border:1px solid var(--border);border-radius:20px;box-shadow:0 10px 26px #1420450a;overflow:hidden}
+.card-title{padding:22px 25px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.card-title h2{font-size:16px;margin:0;font-weight:850}.card-title small{display:block;font-size:11px;margin-top:5px}
+.pad{padding:22px 25px}label{display:block;font-size:12px;font-weight:800;margin-bottom:7px}.field{margin-bottom:15px}
+input,textarea,select{border:1px solid #e1e5ee;outline:none;border-radius:10px;min-height:44px;padding:11px 13px;background:white;width:100%;font:inherit;font-size:12px;color:#24304b}
+textarea{min-height:73px;line-height:1.5;resize:vertical}input:focus,textarea:focus,select:focus{border-color:#998bff;box-shadow:0 0 0 3px #6c52ef18}
+.flex{display:flex;gap:9px}.flex input{flex:1;min-width:0}.flex button{white-space:nowrap}
+button{border:0;cursor:pointer;border-radius:10px;padding:12px 16px;min-height:44px;font-size:12px;font-weight:800}
+button:disabled{opacity:.6;cursor:wait}.primary{background:var(--purple);color:#fff}.primary:hover{background:#5136dc}
+.secondary{background:#efedff;color:#5c43cc}.subtle{background:#f3f5f9;color:#495774}
+hr{border:0;border-top:1px solid var(--border);margin:22px 0}.two{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.actions button:first-child{grid-column:1/-1}
+.status{font-size:11px;min-height:18px;margin-top:11px;color:#55708a}.status.error{color:#c04b3f}.status.good{color:#168558}
+.tip{background:#f7f7ff;border:1px solid #eae7ff;border-radius:12px;padding:14px;color:#67708c;font-size:11px;line-height:1.6;margin:16px 0}
+.canvas{padding:20px;background:#f2f3f8;min-height:650px}.viewport{height:690px;margin:auto;max-width:100%;border-radius:13px;box-shadow:0 16px 36px #28304a1c;overflow:hidden;background:white;border:1px solid #e0e2ea;transition:width .2s}.viewport.mobile{width:390px}.viewport.desktop{width:100%}
+iframe{border:0;height:100%;width:100%;display:block;background:white}.toggle{display:flex;gap:4px;background:#f2f3fa;padding:4px;border-radius:9px}.toggle button{min-height:31px;padding:8px 11px;color:#8590a3;background:transparent;font-size:11px}.toggle .selected{background:white;color:var(--purple);box-shadow:0 1px 7px #10101012}
+.footnote{font-size:11px;color:#8791a3;text-align:center;padding:15px}
+a{color:var(--purple)}.note{font-size:11px;line-height:1.65;color:#8591a4}
+@media(max-width:1200px){.layout{grid-template-columns:1fr}nav{height:auto;position:static;padding:12px 25px;flex-direction:row;align-items:center;justify-content:space-between}nav p,.navitem,nav footer{display:none}.grid{grid-template-columns:1fr 1fr}.content{padding:25px}}
+@media(max-width:950px){.grid{grid-template-columns:1fr}.canvas{min-height:500px}.viewport{height:580px}}
+@media(max-width:600px){.top{height:60px;padding:0 16px}.content{padding:18px 12px}h1{font-size:24px}.card-title,.pad{padding:16px}.canvas{padding:10px}.viewport{height:520px}.flex{flex-wrap:wrap}.flex button{width:100%}.two{grid-template-columns:1fr 1fr}.logo{width:32px;height:32px}.brand{font-size:16px}}
+</style></head>
+<body><div class="layout">
+<nav><div class="brand"><div class="logo">S</div><div>Shopee<br>Landing Studio</div></div><div><p>WORKSPACE</p><div class="navitem">✦ Landing Builder</div></div><footer>Tạo landing page từ link sản phẩm, chỉnh sửa thông tin và xuất HTML/ZIP.</footer></nav>
+<main><div class="top"><div class="breadcrumb">Workspace / <strong>Landing Builder</strong></div><div class="live">● Online editor</div></div>
+<div class="content"><header><h1>Tạo landing page sản phẩm</h1><p>Dán link Shopee, tùy chỉnh nội dung và xem trước trang bán hàng trên mobile hoặc desktop.</p></header>
+<div class="grid">
+<section class="card"><div class="card-title"><div><h2>✦ Thông tin sản phẩm</h2><small>Lấy thông tin công khai hoặc nhập tay nếu Shopee chặn</small></div></div>
+<div class="pad"><div class="field"><label for="source_url">Link sản phẩm Shopee</label><div class="flex"><input id="source_url" placeholder="https://shopee.vn/product/..." autocomplete="off"><button class="primary" id="extract">↗ Lấy thông tin</button></div><div id="status" class="status" aria-live="polite"></div></div>
+<hr><div class="field"><label for="title">Tên sản phẩm</label><input id="title" placeholder="Tên sản phẩm nổi bật"></div>
+<div class="field"><label for="subtitle">Tiêu đề phụ</label><input id="subtitle" placeholder="Mô tả lợi ích ngắn gọn"></div>
+<div class="two"><div class="field"><label for="price">Giá bán</label><input id="price" placeholder="199.000"></div><div class="field"><label for="old_price">Giá gốc (nếu có)</label><input id="old_price" placeholder="250.000"></div></div>
+<div class="two"><div class="field"><label for="currency">Tiền tệ</label><select id="currency"><option>VNĐ</option><option>฿</option><option>USD</option></select></div><div class="field"><label for="shop">Tên gian hàng</label><input id="shop" placeholder="Tên cửa hàng"></div></div>
+<div class="field"><label for="hero">Ảnh chính (URL HTTPS)</label><input id="hero" placeholder="https://.../product.jpg"></div>
+<div class="field"><label for="images">Ảnh phụ (mỗi dòng 1 URL HTTPS)</label><textarea id="images" placeholder="https://...&#10;https://..."></textarea></div>
+<div class="field"><label for="benefits">Điểm nổi bật (mỗi dòng 1 ý)</label><textarea id="benefits" placeholder="Thiết kế tiện lợi&#10;Thông tin được kiểm tra"></textarea></div>
+<div class="field"><label for="description">Mô tả sản phẩm</label><textarea id="description" placeholder="Thông tin mô tả trung thực từ sản phẩm..."></textarea></div>
+<div class="two"><div class="field"><label for="accent">Màu trang</label><select id="accent"><option value="orange">Cam</option><option value="green">Xanh lá</option><option value="blue">Xanh dương</option><option value="purple">Tím</option></select></div><div class="field"><label for="cta">Nút kêu gọi</label><input id="cta" value="Xem sản phẩm trên Shopee"></div></div>
+<div class="tip">Lưu ý: Giá và ảnh có thể thay đổi. Hãy kiểm tra thông tin trước khi quảng cáo. HTML và ZIP chưa phải định dạng <b>.pke</b> để tải trực tiếp vào Webcake.</div>
+<div class="actions"><button class="primary" id="update">Cập nhật bản xem trước</button><button class="secondary" id="exportHtml">↓ Tải HTML</button><button class="subtle" id="exportZip">↓ Tải ZIP + Webcake MCP</button></div>
+<p class="note">Muốn trang chỉnh sửa trực tiếp trong Webcake: dùng nội dung <b>webcake-mcp-prompt.txt</b> trong ZIP với tài khoản Webcake MCP đã kết nối. Chưa hỗ trợ tạo file .pke.</p></div></section>
+<section class="card"><div class="card-title"><div><h2>Live Preview</h2><small>Giao diện landing page người mua sẽ thấy</small></div><div class="toggle"><button id="mobile" class="selected">▯ Mobile</button><button id="desktop">▣ Desktop</button></div></div>
+<div class="canvas"><div id="viewport" class="viewport mobile"><iframe id="preview" title="Xem trước landing page" sandbox="allow-popups allow-popups-to-escape-sandbox"></iframe></div><div class="footnote">Xem trước • Ưu tiên trải nghiệm trên điện thoại</div></div></section>
+</div></div></main></div>
+<script>
+const $=x=>document.getElementById(x);
+const ids=["source_url","title","subtitle","price","old_price","currency","shop","hero","images","benefits","description","accent","cta"];
+const set=(k,v)=>{if($(k))$(k).value=v||""};
+const get=()=>{let d={};ids.forEach(k=>d[k]=$(k).value);d.images=d.images.split("\n").map(x=>x.trim()).filter(Boolean);return d};
+const msg=(s,bad)=>{const el=$("status");el.textContent=s;el.className="status "+(bad?"error":"good")};
+async function request(path,data){let r=await fetch(path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});return r}
+async function preview(){try{let r=await request("/api/preview",get());if(!r.ok)throw Error("HTTP "+r.status);$("preview").srcdoc=await r.text()}catch(e){msg("Không thể hiển thị bản xem trước.",true)}}
+async function extract(){let url=$("source_url").value.trim();if(!url){msg("Hãy dán link Shopee trước.",true);return}
+$("extract").disabled=true;msg("Đang lấy thông tin công khai...");try{let r=await request("/api/extract",{url});let v=await r.json();if(!v.ok){msg(v.message||"Không lấy được thông tin, hãy nhập thủ công.",true);return}
+let p=v.product;["source_url","title","description","price","old_price","currency","shop"].forEach(k=>{if(p[k])set(k,p[k])});if(p.images&&p.images.length){set("hero",p.images[0]);set("images",p.images.slice(1).join("\n"))}
+msg("Đã lấy metadata. Hãy kiểm tra giá, ảnh và nội dung.");await preview()}catch(e){msg("Không thể kết nối đến máy chủ.",true)}finally{$("extract").disabled=false}}
+async function download(kind){const b=$(kind==="html"?"exportHtml":"exportZip");b.disabled=true;try{let r=await request("/api/export/"+kind,get());if(!r.ok)throw Error("HTTP "+r.status);let u=URL.createObjectURL(await r.blob());let a=document.createElement("a");a.href=u;a.download=kind==="html"?"landing-page.html":"shopee-landing-kit.zip";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);msg("Đã xuất file tải về.")}catch(e){msg("Tạo file thất bại: "+e.message,true)}finally{b.disabled=false}}
+$("extract").addEventListener("click",extract);$("update").addEventListener("click",preview);
+$("exportHtml").addEventListener("click",()=>download("html"));$("exportZip").addEventListener("click",()=>download("zip"));
+$("mobile").addEventListener("click",()=>{ $("viewport").className="viewport mobile";$("mobile").className="selected";$("desktop").className=""});
+$("desktop").addEventListener("click",()=>{ $("viewport").className="viewport desktop";$("desktop").className="selected";$("mobile").className=""});
+const defaults={title:"Sản phẩm của bạn",subtitle:"Landing page từ Shopee, chỉnh sửa nội dung trước khi xuất",price:"",shop:"Cửa hàng của bạn",benefits:"Giới thiệu sản phẩm nổi bật\nTrang hiển thị tốt trên điện thoại\nNút dẫn tới trang đặt hàng",description:"Đây là nội dung mẫu. Hãy dán link Shopee hoặc nhập thông tin thực tế của sản phẩm trước khi tải.",cta:"Xem sản phẩm trên Shopee"};
+Object.entries(defaults).forEach(([k,v])=>set(k,v));
+preview();
+</script></body></html>
