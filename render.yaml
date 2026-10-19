@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: shopee-landing-studio
+    runtime: python
+    region: singapore
+    plan: free
+    branch: shopee-landing-studio-render
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py
+    healthCheckPath: /health
+    autoDeployTrigger: off
+    envVars:
+      - key: TOOL_USER
+        value: admin
+      - key: TOOL_PASSWORD
+        sync: false
