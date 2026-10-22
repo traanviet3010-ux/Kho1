@@ -52,10 +52,28 @@ jobs:
             http://localhost:10081/api/login >/tmp/login.json
           curl -fsS -b /tmp/rea-cookie http://localhost:10081/api/capabilities >/tmp/capabilities.json
           grep -q 'inspect-il2cpp-metadata' /tmp/capabilities.json
-          printf 'MZ Example binary header' > /tmp/rea-example.exe
-          curl -fsS -b /tmp/rea-cookie -F kind=artifact -F file=@/tmp/rea-example.exe \
+          python3 - <<'PY'
+          import sqlite3
+          db = sqlite3.connect('/tmp/rea-ci.sqlite')
+          db.execute('CREATE TABLE evidence (id INTEGER PRIMARY KEY, name TEXT)')
+          db.execute("INSERT INTO evidence (name) VALUES ('REA web test')")
+          db.commit()
+          db.close()
+          PY
+          curl -fsS -b /tmp/rea-cookie -F kind=sqlite -F file=@/tmp/rea-ci.sqlite \
             http://localhost:10081/api/jobs >/tmp/job.json
           node -e "const j=require('/tmp/job.json'); if(!j.job.id||j.job.status!=='queued')process.exit(1)"
-          curl -fsS -b /tmp/rea-cookie http://localhost:10081/api/jobs >/tmp/jobs.json
-          grep -q 'rea-example.exe' /tmp/jobs.json
-          echo 'HTTP smoke test passed'
+          JOB_ID="$(node -p "require('/tmp/job.json').job.id")"
+          for i in $(seq 1 60); do
+            curl -fsS -b /tmp/rea-cookie "http://localhost:10081/api/jobs/$JOB_ID" >/tmp/job-detail.json
+            STATUS="$(node -p "require('/tmp/job-detail.json').job.status")"
+            if [ "$STATUS" = completed ] || [ "$STATUS" = failed ]; then break; fi
+            sleep 1
+          done
+          if [ "$STATUS" != completed ]; then
+            cat /tmp/job-detail.json
+            exit 1
+          fi
+          curl -fsS -b /tmp/rea-cookie "http://localhost:10081/api/jobs/$JOB_ID/report" >/tmp/rea-result.json
+          node -e "const fs=require('fs');let j=JSON.parse(fs.readFileSync('/tmp/rea-result.json','utf8'));if(!j)process.exit(1)"
+          echo 'Real SQLite analysis completed and report downloaded'
