@@ -1,0 +1,82 @@
+name: Build REA 6.7.0
+
+on:
+  push:
+    branches: [build-rea-6.7.0]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Install Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.18.0'
+
+      - name: Prepare build environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --global npm@11.16.0
+          node --version
+          npm --version
+
+      - name: Get official REA v6.7.0 source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch rea-agents-6.7.0 https://github.com/morluto/rea.git rea-source
+          cd rea-source
+          test "$(git rev-parse HEAD)" = "27dc42d10249f0410904a75c0997842eb03b931c"
+          echo "Upstream commit: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Install locked dependencies
+        working-directory: rea-source
+        env:
+          HUSKY: '0'
+        run: npm ci --no-audit --no-fund
+
+      - name: Compile REA
+        working-directory: rea-source
+        env:
+          HUSKY: '0'
+        run: npm run build
+
+      - name: Package npm distributable
+        working-directory: rea-source
+        env:
+          HUSKY: '0'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ../artifacts
+          npm pack --ignore-scripts --pack-destination ../artifacts
+          test -s ../artifacts/rea-agents-6.7.0.tgz
+          tar -tzf ../artifacts/rea-agents-6.7.0.tgz | grep -q '^package/dist/'
+          sha256sum ../artifacts/rea-agents-6.7.0.tgz | tee ../artifacts/SHA256SUMS.txt
+
+      - name: Smoke test bundled CLI
+        shell: bash
+        env:
+          HUSKY: '0'
+        run: |
+          set -euo pipefail
+          mkdir rea-smoke
+          cd rea-smoke
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund ../artifacts/rea-agents-6.7.0.tgz
+          ./node_modules/.bin/rea --help | tee ../artifacts/rea-help.txt
+          ./node_modules/.bin/rea --version | tee ../artifacts/rea-version.txt
+
+      - name: Upload REA build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rea-agents-6.7.0-linux-build
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 30
