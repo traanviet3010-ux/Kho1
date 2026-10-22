@@ -10,7 +10,7 @@ export const MODES = Object.freeze({
   rust: { label: 'Rust — Binary', command: 'inspect-rust-binary', extensions: ['.exe', '.bin', '.elf', '.so', '.dll'], note: 'Phát hiện thông tin cargo-auditable.' },
   model: { label: 'AI — GGUF / Safetensors', command: 'inspect-model-artifact', extensions: ['.gguf', '.safetensors'], note: 'Đọc khai báo tensor và metadata mô hình.' },
   sqlite: { label: 'SQLite — Database', command: 'inspect-sqlite-database', extensions: ['.db', '.sqlite', '.sqlite3'], note: 'Xem schema và cấu trúc database.' },
-  flutter: { label: 'Flutter — APK', command: 'inspect-flutter-artifact', extensions: ['.apk'], note: 'Phân tích cấu trúc Flutter tĩnh; có thể không hỗ trợ mọi bản APK.' },
+  flutter: { label: 'Flutter — APK', command: 'identify-flutter-build', extensions: ['.apk'], note: 'Phân tích cấu trúc Flutter tĩnh; có thể không hỗ trợ mọi bản APK.' },
 });
 
 export const ALLOWED_EXTENSIONS = new Set([
