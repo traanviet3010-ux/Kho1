@@ -1,0 +1,61 @@
+name: Validate REA Web VI
+
+on:
+  push:
+    branches: [rea-web-render]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.18.0'
+      - name: Install dependencies
+        env:
+          HUSKY: '0'
+        run: npm install --no-audit --no-fund
+      - name: Validate source syntax
+        run: npm run check
+      - name: Run unit tests
+        run: npm test
+      - name: Check bundled REA package
+        run: ./node_modules/.bin/rea --version
+      - name: HTTP API smoke test
+        shell: bash
+        env:
+          ADMIN_USERNAME: admin
+          ADMIN_PASSWORD: 'test-password-for-actions-only-not-a-production-secret'
+          SESSION_SECRET: 'test-session-secret-for-actions-only-not-a-production-secret'
+          NODE_ENV: production
+          PORT: '10081'
+          DATA_DIR: '/tmp/rea-web-ci'
+        run: |
+          set -euo pipefail
+          node server.mjs > /tmp/rea-web.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true; cat /tmp/rea-web.log' EXIT
+          for i in $(seq 1 40); do
+            if curl -fsS http://localhost:10081/api/health > /tmp/health.json; then break; fi
+            sleep 1
+          done
+          grep -q '"ok":true' /tmp/health.json
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:10081/api/jobs)" = "401"
+          curl -fsS -c /tmp/rea-cookie -H 'Content-Type: application/json' \
+            -d '{"username":"admin","password":"test-password-for-actions-only-not-a-production-secret"}' \
+            http://localhost:10081/api/login >/tmp/login.json
+          curl -fsS -b /tmp/rea-cookie http://localhost:10081/api/capabilities >/tmp/capabilities.json
+          grep -q 'inspect-il2cpp-metadata' /tmp/capabilities.json
+          printf 'MZ Example binary header' > /tmp/rea-example.exe
+          curl -fsS -b /tmp/rea-cookie -F kind=artifact -F file=@/tmp/rea-example.exe \
+            http://localhost:10081/api/jobs >/tmp/job.json
+          node -e "const j=require('/tmp/job.json'); if(!j.job.id||j.job.status!=='queued')process.exit(1)"
+          curl -fsS -b /tmp/rea-cookie http://localhost:10081/api/jobs >/tmp/jobs.json
+          grep -q 'rea-example.exe' /tmp/jobs.json
+          echo 'HTTP smoke test passed'
