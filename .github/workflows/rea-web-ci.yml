@@ -27,6 +27,24 @@ jobs:
         run: npm test
       - name: Check bundled REA package
         run: ./node_modules/.bin/rea --version
+      - name: Build Render Docker image
+        run: docker build --tag rea-web-vi:ci .
+      - name: Test Docker container health
+        shell: bash
+        run: |
+          set -euo pipefail
+          C="$(docker run -d -p 10082:10000 -e PORT=10000 \
+            -e ADMIN_USERNAME=admin \
+            -e ADMIN_PASSWORD=ci-docker-password-is-not-a-production-secret \
+            -e SESSION_SECRET=ci-docker-session-secret-is-not-a-production-secret \
+            rea-web-vi:ci)"
+          trap 'docker logs "$C" || true; docker rm -f "$C" >/dev/null 2>&1 || true' EXIT
+          for i in $(seq 1 50); do
+            if curl -fsS http://localhost:10082/api/health > /tmp/docker-health.json; then break; fi
+            sleep 1
+          done
+          grep -q '"ok":true' /tmp/docker-health.json
+          echo 'Docker container health passed'
       - name: HTTP API smoke test
         shell: bash
         env:
