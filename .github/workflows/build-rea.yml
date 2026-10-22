@@ -55,9 +55,10 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p ../artifacts
-          npm pack --ignore-scripts --pack-destination ../artifacts
+          npm pack --silent --ignore-scripts --pack-destination ../artifacts
           test -s ../artifacts/rea-agents-6.7.0.tgz
-          tar -tzf ../artifacts/rea-agents-6.7.0.tgz | grep -q '^package/dist/'
+          tar -tzf ../artifacts/rea-agents-6.7.0.tgz > ../artifacts/PACKAGE_CONTENTS.txt
+          grep -q '^package/dist/' ../artifacts/PACKAGE_CONTENTS.txt
           sha256sum ../artifacts/rea-agents-6.7.0.tgz | tee ../artifacts/SHA256SUMS.txt
 
       - name: Smoke test bundled CLI
