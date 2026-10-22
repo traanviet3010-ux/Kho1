@@ -17,7 +17,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: MAX_UPLOAD_MB
-        value: "25"
+        value: "75"
       - key: REA_TIMEOUT_MS
         value: "180000"
     healthCheckPath: /api/health

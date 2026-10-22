@@ -1,7 +1,7 @@
 'use strict';
 const $ = sel => document.querySelector(sel);
 const $$ = sel => [...document.querySelectorAll(sel)];
-const state = { jobs: [], modes: {}, current: null, selected: null, page: 'overview', active: false, maxUploadMb: 25, polling: null };
+const state = { jobs: [], modes: {}, current: null, selected: null, page: 'overview', active: false, maxUploadMb: 75, polling: null };
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const statusName = { queued:'Đang chờ', running:'Đang phân tích', completed:'Hoàn thành', failed:'Thất bại', cancelled:'Đã hủy' };
 const humanBytes = n => n < 1024 ? n + ' B' : n < 1048576 ? (n / 1024).toFixed(1) + ' KB' : (n / 1048576).toFixed(1) + ' MB';
@@ -33,7 +33,7 @@ async function showApp() {
   $('#app-shell').classList.remove('hidden');
   const c = await api('/api/capabilities');
   state.modes = c.modes || {};
-  state.maxUploadMb = c.maxUploadMb || 25;
+  state.maxUploadMb = c.maxUploadMb || 75;
   $('#upload-limit').textContent = 'Tối đa ' + state.maxUploadMb + ' MB';
   $('#mode').innerHTML = Object.entries(state.modes).map(([key,m]) => '<option value="' + escapeHtml(key) + '">' + escapeHtml(m.label) + '</option>').join('');
   $('#mode-note').textContent = state.modes.artifact?.note || '';

@@ -45,6 +45,57 @@ jobs:
           done
           grep -q '"ok":true' /tmp/docker-health.json
           echo 'Docker container health passed'
+      - name: Verify 56 MiB uploaded file can be analyzed
+        shell: bash
+        env:
+          ADMIN_USERNAME: admin
+          ADMIN_PASSWORD: 'test-password-for-actions-only-not-a-production-secret'
+          SESSION_SECRET: 'test-session-secret-for-actions-only-not-a-production-secret'
+          NODE_ENV: production
+          PORT: '10083'
+          DATA_DIR: '/tmp/rea-web-ci-large'
+        run: |
+          set -euo pipefail
+          node server.mjs > /tmp/rea-web-large.log 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true; cat /tmp/rea-web-large.log' EXIT
+          for i in $(seq 1 40); do
+            if curl -fsS http://localhost:10083/api/health >/tmp/rea-health-large.json; then break; fi
+            sleep 1
+          done
+          curl -fsS -c /tmp/rea-cookie-large -H 'Content-Type: application/json' \
+            -d '{"username":"admin","password":"test-password-for-actions-only-not-a-production-secret"}' \
+            http://localhost:10083/api/login >/tmp/rea-login-large.json
+          curl -fsS -b /tmp/rea-cookie-large http://localhost:10083/api/capabilities >/tmp/rea-cap-large.json
+          node -e "const c=require('/tmp/rea-cap-large.json');if(c.maxUploadMb!==75)process.exit(1)"
+          python3 - <<'PY'
+          import sqlite3, os
+          p='/tmp/rea-ci-56mb.sqlite'
+          conn=sqlite3.connect(p)
+          conn.execute('CREATE TABLE large_payload (id INTEGER PRIMARY KEY, contents BLOB)')
+          conn.execute('INSERT INTO large_payload(contents) VALUES(zeroblob(?))',(56*1024*1024,))
+          conn.commit()
+          conn.close()
+          assert os.path.getsize(p)>55*1024*1024
+          print('Generated large SQLite file',os.path.getsize(p),'bytes')
+          PY
+          HTTP_CODE="$(curl -sS -b /tmp/rea-cookie-large -o /tmp/rea-job-large.json -w '%{http_code}' \
+            -F kind=sqlite -F file=@/tmp/rea-ci-56mb.sqlite \
+            http://localhost:10083/api/jobs)"
+          test "$HTTP_CODE" = 202 || { cat /tmp/rea-job-large.json; exit 1; }
+          JOB_ID="$(node -p "require('/tmp/rea-job-large.json').job.id")"
+          STATUS='queued'
+          for i in $(seq 1 90); do
+            curl -fsS -b /tmp/rea-cookie-large "http://localhost:10083/api/jobs/$JOB_ID" >/tmp/rea-status-large.json
+            STATUS="$(node -p "require('/tmp/rea-status-large.json').job.status")"
+            if [ "$STATUS" = completed ] || [ "$STATUS" = failed ]; then break; fi
+            sleep 1
+          done
+          if [ "$STATUS" != completed ]; then cat /tmp/rea-status-large.json; exit 1; fi
+          curl -fsS -b /tmp/rea-cookie-large \
+            "http://localhost:10083/api/jobs/$JOB_ID/report" >/tmp/rea-report-large.json
+          node -e "JSON.parse(require('fs').readFileSync('/tmp/rea-report-large.json','utf8'))"
+          echo '56 MiB real SQLite upload and analysis PASS'
       - name: HTTP API smoke test
         shell: bash
         env:

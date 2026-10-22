@@ -10,7 +10,7 @@ RUN mkdir -p /app/runtime-data && chown -R node:node /app
 USER node
 ENV NODE_ENV=production
 ENV DATA_DIR=/app/runtime-data
-ENV MAX_UPLOAD_MB=25
+ENV MAX_UPLOAD_MB=75
 ENV REA_TIMEOUT_MS=180000
 EXPOSE 10000
 CMD ["node", "server.mjs"]
