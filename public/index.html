@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#080f1f">
+  <meta name="description" content="REA Studio – trung tâm phân tích ứng dụng và mã nhị phân bằng tiếng Việt.">
+  <title>REA Studio · Phân tích phần mềm</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <section id="login-screen" class="login-screen">
+    <div class="login-art">
+      <div class="logo-orb">R<span>.</span></div>
+      <p class="eyebrow">REVERSE ENGINEERING WORKSPACE</p>
+      <h1>Khám phá cấu trúc.<br><em>Hiểu cách vận hành.</em></h1>
+      <p>Phân tích ứng dụng, binary và tài nguyên bằng REA. Một nơi quản lý dữ liệu, tác vụ và báo cáo kỹ thuật của anh.</p>
+      <div class="login-tags"><span>REA 6.7.0</span><span>Phân tích tĩnh</span><span>Chế độ riêng tư</span></div>
+    </div>
+    <form id="login-form" class="login-form">
+      <div class="tiny-logo">R<span>.</span></div>
+      <h2>Chào mừng trở lại</h2>
+      <p>Đăng nhập để truy cập phòng phân tích của anh.</p>
+      <label for="username">Tên đăng nhập</label>
+      <input id="username" name="username" autocomplete="username" value="admin" required>
+      <label for="password">Mật khẩu</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu quản trị" required>
+      <div id="login-error" class="field-error" role="alert"></div>
+      <button class="primary full" type="submit">Đăng nhập <span>→</span></button>
+      <small>Hệ thống yêu cầu tài khoản quản trị. Không có tài khoản mặc định công khai.</small>
+    </form>
+  </section>
+  <div id="app-shell" class="shell hidden">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">R<span>.</span></div><div><strong>REA Studio</strong><small>ANALYSIS CONSOLE</small></div></div>
+      <div class="sidebar-label">KHÔNG GIAN LÀM VIỆC</div>
+      <nav class="menu" aria-label="Điều hướng">
+        <button data-page="overview" class="nav-item active"><span class="nav-icon">◫</span> Tổng quan</button>
+        <button data-page="new" class="nav-item"><span class="nav-icon">⊕</span> Phân tích mới</button>
+        <button data-page="history" class="nav-item"><span class="nav-icon">◷</span> Lịch sử tác vụ</button>
+        <button data-page="tools" class="nav-item"><span class="nav-icon">⌘</span> Công cụ & thiết lập</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="sidebar-engine"><span class="online-dot"></span><div><strong>REA Engine</strong><small>Phiên bản 6.7.0</small></div><span class="good-tag">READY</span></div>
+        <div class="sidebar-foot">POWERED BY REA<br><small>morluto/rea · MIT License</small></div>
+      </div>
+    </aside>
+    <div class="main">
+      <header class="topbar">
+        <div class="breadcrumb">Workspace <span>/</span> <strong id="crumb">Tổng quan</strong></div>
+        <div class="top-actions"><span class="top-status"><i></i> Hệ thống hoạt động</span><span class="user-avatar">A</span><button class="logout-btn" id="logout" title="Đăng xuất">Đăng xuất ↗</button></div>
+      </header>
+      <main class="content">
+        <section id="page-overview" class="page">
+          <div class="heading-row"><div><p class="eyebrow">BẢNG ĐIỀU KHIỂN / DASHBOARD</p><h1>Tổng quan hệ thống</h1><p>Quản lý tác vụ phân tích và theo dõi tiến trình.</p></div><button class="primary" data-goto="new">＋ Bắt đầu phân tích</button></div>
+          <div class="metrics">
+            <article class="metric"><div class="metric-label">Tổng số tác vụ <span>◈</span></div><strong id="metric-total">0</strong><small>Trong không gian làm việc</small></article>
+            <article class="metric"><div class="metric-label">Hoàn thành <span>✓</span></div><strong id="metric-done">0</strong><small>Báo cáo đã tạo</small></article>
+            <article class="metric"><div class="metric-label">Đang chờ / xử lý <span>◷</span></div><strong id="metric-busy">0</strong><small>Tác vụ trong hàng đợi</small></article>
+            <article class="metric"><div class="metric-label">Không thành công <span>!</span></div><strong id="metric-failed">0</strong><small>Có thể xem lỗi và thử lại</small></article>
+          </div>
+          <div class="section-title"><div><h2>Hoạt động gần đây</h2><p>Các phép phân tích mới nhất</p></div><button class="text-link" data-goto="history">Xem tất cả →</button></div>
+          <div id="recent-jobs" class="table-card"></div>
+          <div class="quick-grid">
+            <article class="card feature"><span class="feature-symbol">⌁</span><div><h3>Phân tích tĩnh, không thực thi</h3><p>REA đọc cấu trúc và metadata mà không chạy file của người dùng trên máy chủ.</p></div></article>
+            <article class="card feature"><span class="feature-symbol">⌘</span><div><h3>Kết quả có bằng chứng</h3><p>Lưu phản hồi gốc từ REA, checksum SHA-256 và cho phép tải báo cáo.</p></div></article>
+          </div>
+        </section>
+        <section id="page-new" class="page hidden">
+          <div class="heading-row"><div><p class="eyebrow">TẠO TÁC VỤ MỚI</p><h1>Phân tích file</h1><p>Chọn dữ liệu và chế độ dịch ngược phù hợp.</p></div></div>
+          <div class="two-col">
+            <form id="upload-form" class="card upload-form">
+              <h2>01 <span>/</span> Chọn tệp cần phân tích</h2>
+              <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Chọn tệp tải lên">
+                <div class="drop-icon">⇧</div><strong>Kéo thả file vào đây</strong><p>hoặc <span class="accent">nhấp để chọn từ thiết bị</span></p><small>EXE, DLL, APK, ASAR, PK2, DAT, GGUF, SQLite... <span id="upload-limit">Tối đa 25 MB</span></small>
+                <input type="file" id="file" name="file" accept=".exe,.dll,.so,.dylib,.bin,.dat,.elf,.apk,.asar,.zip,.jar,.pck,.gguf,.safetensors,.wasm,.db,.sqlite,.sqlite3,.js,.json,.pak,.pk2,.ipa,.aab" hidden required>
+              </div>
+              <div id="chosen-file" class="chosen-file hidden"></div>
+              <label for="mode" class="form-label">02 <span>/</span> Chọn chế độ phân tích</label>
+              <select id="mode" name="kind" required></select>
+              <div class="mode-note" id="mode-note"></div>
+              <button class="primary full run-btn" id="start-analysis" type="submit">⚡ Bắt đầu phân tích <span>→</span></button>
+              <p class="form-disclaimer">Chỉ tải lên file mà anh có quyền phân tích. Không upload dữ liệu riêng tư hoặc khóa bí mật nếu không cần thiết.</p>
+            </form>
+            <div class="right-column">
+              <article class="card help-card"><div class="eyebrow">QUY TRÌNH HOẠT ĐỘNG</div><h2>Ba bước đơn giản</h2>
+                <div class="step"><b>01</b><div><strong>Tải dữ liệu lên</strong><p>File được lưu trong vùng tác vụ với tên ngẫu nhiên.</p></div></div>
+                <div class="step"><b>02</b><div><strong>REA phân tích</strong><p>Chạy lệnh từ danh sách cho phép, giới hạn thời gian và dung lượng kết quả.</p></div></div>
+                <div class="step"><b>03</b><div><strong>Xem và xuất báo cáo</strong><p>Kiểm tra nội dung, bằng chứng, checksum và tải file JSON.</p></div></div>
+              </article>
+              <article class="card caution"><strong>Phạm vi bản triển khai này</strong><p>Hỗ trợ các lệnh phân tích tĩnh có sẵn. Ghidra, JADX và phân tích động chưa được cài thành worker riêng; không có tính năng tự khôi phục toàn bộ mã nguồn.</p></article>
+            </div>
+          </div>
+        </section>
+        <section id="page-history" class="page hidden">
+          <div class="heading-row"><div><p class="eyebrow">DỮ LIỆU / NHẬT KÝ</p><h1>Lịch sử phân tích</h1><p>Xem lại, tải báo cáo hoặc xóa các tác vụ cũ.</p></div><button class="primary" data-goto="new">＋ Tác vụ mới</button></div>
+          <div class="card history-wrap"><div class="history-toolbar"><strong>Danh sách tác vụ</strong><input id="search" placeholder="Tìm theo tên file hoặc SHA-256..." aria-label="Tìm kiếm tác vụ"></div><div id="all-jobs"></div></div>
+        </section>
+        <section id="page-tools" class="page hidden">
+          <div class="heading-row"><div><p class="eyebrow">CẤU HÌNH / HẠ TẦNG</p><h1>Công cụ và thiết lập</h1><p>Danh mục tính năng hiện có của REA Studio.</p></div></div>
+          <div class="card tool-card"><h2>Danh sách chế độ phân tích</h2><div id="mode-list"></div></div>
+          <div class="card tool-card"><h2>Trạng thái máy chủ</h2><div id="server-status">Đang kiểm tra...</div><p class="muted">Không thay đổi cấu hình động từ giao diện. Quản trị qua biến môi trường của Render.</p></div>
+          <div class="card tool-card"><h2>Lưu trữ & an toàn</h2><div id="storage-notes"></div></div>
+        </section>
+      </main>
+    </div>
+  </div>
+  <div id="drawer-backdrop" class="drawer-backdrop hidden"></div>
+  <aside id="drawer" class="drawer hidden" aria-label="Chi tiết tác vụ">
+    <div class="drawer-header"><div><p class="eyebrow">BÁO CÁO CHI TIẾT</p><h2>Phân tích REA</h2></div><button id="close-drawer" class="icon-btn" aria-label="Đóng">✕</button></div>
+    <div id="drawer-content"></div>
+  </aside>
+</body>
+</html>
