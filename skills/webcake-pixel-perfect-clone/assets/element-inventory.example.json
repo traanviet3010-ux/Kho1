@@ -1,0 +1,87 @@
+{
+  "project": "EXAMPLE_REPLACE_ME",
+  "reference": {
+    "url": "https://example.org/reference",
+    "owner_authorized": false,
+    "captured_at": null,
+    "desktop_viewport": [
+      1440,
+      900
+    ],
+    "mobile_viewport": [
+      390,
+      844
+    ]
+  },
+  "mode": "exact-clone",
+  "sections": [
+    {
+      "section_id": "sec-001",
+      "order": 1,
+      "role": "hero",
+      "desktop_rect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 700
+      },
+      "mobile_rect": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 760
+      },
+      "elements": [
+        {
+          "id": "ref-001",
+          "type": "heading",
+          "content": "EXACT_TEXT_FROM_SOURCE",
+          "source_asset_url": null,
+          "desktop_rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          },
+          "mobile_rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          },
+          "style": {
+            "font_family": "",
+            "font_size_desktop": 0,
+            "font_size_mobile": 0,
+            "weight": 400,
+            "line_height": 0,
+            "color": "",
+            "background": "",
+            "radius": 0,
+            "shadow": ""
+          },
+          "interaction": {
+            "event": "none",
+            "target": "",
+            "state": "default"
+          },
+          "source_evidence": [
+            "desktop/section-001.png"
+          ],
+          "webcake_element_id": null,
+          "status": "unverified",
+          "notes": ""
+        }
+      ]
+    }
+  ],
+  "popups": [],
+  "unmapped": [],
+  "counts": {
+    "source_sections": 1,
+    "source_elements": 1,
+    "implemented_sections": 0,
+    "implemented_elements": 0
+  },
+  "blockers": []
+}
