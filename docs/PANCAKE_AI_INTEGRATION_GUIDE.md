@@ -179,3 +179,8 @@ WhatsApp hoặc Form nội bộ (yêu cầu từ chủ shop)
 ---
 
 **Nguồn tham chiếu ưu tiên:** các liên kết docs chính thức ở bảng đầu; mã nguồn mở của các gói MCP chỉ mang tính tham khảo triển khai. Khi tài liệu này và docs nhà cung cấp khác nhau, ưu tiên docs mới nhất và báo phần thay đổi.
+
+
+## 12. META FACEBOOK ADS — hướng dẫn tạo campaign bằng AI
+
+Xem tài liệu [**META MARKETING API — tạo Campaign / Ad Set / Creative / Ad qua API v26.0, mặc định PAUSED và yêu cầu duyệt**](./META_MARKETING_API_AI_CAMPAIGN_GUIDE.md). Tài liệu chứa quyền truy cập, System User token, Pixel/CAPI, API flow, n8n/Muse/GitHub gateway, chính sách quảng cáo và checklist triển khai. Meta Marketing API là hệ sinh thái quảng cáo **riêng**, không thuộc Pancake; tích hợp với Webcake/Pancake qua AI gateway.
