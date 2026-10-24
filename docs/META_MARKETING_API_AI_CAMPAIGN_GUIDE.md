@@ -6,6 +6,24 @@
 
 > **An toàn:** Không đưa access token, App Secret, số điện thoại khách hàng, danh sách đối tượng hoặc thông tin thanh toán vào repo, Issue, prompt công khai. **Không tự kích hoạt quảng cáo, thay ngân sách, thay nhắm mục tiêu, chi tiền hoặc chỉnh sửa camp đang chạy.** Các thao tác API ghi có thể gây thay đổi thực tế kể cả khi trạng thái PAUSED. Không gọi POST khi chủ sở hữu chỉ yêu cầu đọc/tư vấn.
 
+## BỔ SUNG QUAN TRỌNG — Meta Ads MCP chính thức (24/10/2026)
+
+**Meta hiện cung cấp Ads MCP Server riêng**, không chỉ có REST Marketing API. Với AI client được hỗ trợ, đây là đường thử đầu tiên nên ưu tiên:
+
+- **URL:** `https://mcp.facebook.com/ads`
+- **Tài liệu chính thức:** [Overview](https://developers.facebook.com/documentation/ads-commerce/ads-ai-connectors/ads-mcp-server/ads-mcp-server-overview) · [Get started](https://developers.facebook.com/documentation/ads-commerce/ads-ai-connectors/ads-mcp-server/ads-mcp-server-get-started) · [Available tools](https://developers.facebook.com/documentation/ads-commerce/ads-ai-connectors/ads-mcp-server/ads-mcp-server-tools) · [Rules and best practices](https://developers.facebook.com/documentation/ads-commerce/ads-ai-connectors/ads-mcp-server/ads-mcp-server-rules-best-practices)
+- **Chức năng:** đọc account/campaign/insights, tạo/chỉnh sửa chiến dịch, ad set, creative và ad; tùy rollout có thể quản lý audiences, catalogs, signal/pixel datasets, experiments, activity logs. Agent phải tự liệt kê tools trong phiên đã kết nối, không giả định tất cả tools đều khả dụng.
+- **Xác thực:** Meta OAuth (đăng nhập Meta). Không nhập `META_ACCESS_TOKEN` vào prompt khi dùng hosted official MCP. Meta có hỗ trợ đăng nhập sẵn với một số client thông dụng như Claude/ChatGPT/Claude Code/Perplexity; các client khác, nhất là ứng dụng do anh tự xây/n8n/Muse, có thể phải dùng Meta Developer App hỗ trợ redirect & Ads MCP theo docs mới. **Đừng khẳng định URL này chạy với Muse/n8n khi chưa kiểm thử thực tế.**
+- **Dùng Claude Code:** `claude mcp add --transport http meta-ads https://mcp.facebook.com/ads`, sau đó chạy `/mcp` và đăng nhập Meta theo lời nhắc (nếu client/Meta chấp nhận).
+- **Kiểm soát hành động:** nếu tài khoản đã được hỗ trợ, người có toàn quyền Business Portfolio có thể vào Meta Business Suite → Settings → Integrations → Ads MCP server để thiết lập rules chặn tạo camp, chặn tăng ngân sách hoặc đặt ngưỡng. Dùng thêm approval gate riêng. Tạo mới `PAUSED` không đồng nghĩa được phép tự tạo nếu chưa được chủ tài khoản đồng ý.
+- **Kiểm thử bước đầu:** yêu cầu AI “Liệt kê tài khoản quảng cáo tôi có quyền truy cập; chỉ đọc, không tạo/sửa gì”, sau đó đọc `insights` cho một tài khoản xác định. Phân biệt lỗi đăng nhập, chưa được rollout (`is_ads_mcp_enabled: false`), thiếu quyền tài sản và lỗi tool.
+- **Khác với Marketing API REST:** dùng MCP chính thức cho tương tác nhanh/reporting/nháp ít creatives; dùng REST Gateway khi cần tự chạy batch lớn, xử lý upload media/video hay tích hợp n8n theo lịch, bảo đảm versioning, queue, audit và approval.
+- **MCP thay thế tự host:** [getmcpads-com/meta-ads-mcp-server](https://github.com/getmcpads-com/meta-ads-mcp-server) (độc lập với Meta, tự kiểm tra mã nguồn/credential, chỉ bật write khi đã audit). Không bắt buộc khi official MCP đã đáp ứng.
+
+**Đề xuất cho dự án:** Muse/WhatsApp tiếp nhận ý định → bộ não AI lập kế hoạch → MCP chính thức (nếu kết nối hợp lệ) đọc/report → gateway phê duyệt → tạo/activate nếu anh cho phép. Duy trì REST API làm fallback cho những client không được Meta MCP hỗ trợ. **Không triển khai live ads hay token khi chưa xác minh môi trường thực.**
+
+---
+
 ## 1. Nguồn chính thức (đọc trước khi triển khai)
 
 - [Meta Marketing API overview](https://developers.facebook.com/docs/marketing-apis/)
