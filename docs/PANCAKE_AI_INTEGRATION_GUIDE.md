@@ -181,6 +181,16 @@ WhatsApp hoặc Form nội bộ (yêu cầu từ chủ shop)
 **Nguồn tham chiếu ưu tiên:** các liên kết docs chính thức ở bảng đầu; mã nguồn mở của các gói MCP chỉ mang tính tham khảo triển khai. Khi tài liệu này và docs nhà cung cấp khác nhau, ưu tiên docs mới nhất và báo phần thay đổi.
 
 
-## 12. META FACEBOOK ADS — hướng dẫn tạo campaign bằng AI
+## 12. META FACEBOOK ADS — MCP CHÍNH THỨC + Marketing API
 
-Xem tài liệu [**META MARKETING API — tạo Campaign / Ad Set / Creative / Ad qua API v26.0, mặc định PAUSED và yêu cầu duyệt**](./META_MARKETING_API_AI_CAMPAIGN_GUIDE.md). Tài liệu chứa quyền truy cập, System User token, Pixel/CAPI, API flow, n8n/Muse/GitHub gateway, chính sách quảng cáo và checklist triển khai. Meta Marketing API là hệ sinh thái quảng cáo **riêng**, không thuộc Pancake; tích hợp với Webcake/Pancake qua AI gateway.
+**META ADS MCP CHÍNH THỨC DO META HOST**: `https://mcp.facebook.com/ads` — **khác Pancake MCP**. Đọc [Meta Ads MCP overview](https://developers.facebook.com/documentation/ads-commerce/ads-ai-connectors/ads-mcp-server/ads-mcp-server-overview) và [hướng dẫn kết nối](https://developers.facebook.com/documentation/ads-commerce/ads-ai-connectors/ads-mcp-server/ads-mcp-server-get-started).
+
+- Hỗ trợ các tác vụ đọc báo cáo/insights, tạo/chỉnh sửa Campaign, Ad Set, Ad, creative, audience/catalog, Pixel/dataset, test và nhật ký — **danh sách tools thực tế tùy tài khoản & rollout**.
+- Meta-hosted MCP hỗ trợ đăng nhập OAuth của Meta, không bắt người dùng dán API key vào chat. Một số AI client được Meta hỗ trợ trực tiếp; **để dùng với Muse, n8n hoặc app riêng cần xác minh hỗ trợ OAuth/redirect và có thể cần tạo Meta Developer App theo hướng dẫn nhà cung cấp**. Chỉ có URL không đảm bảo kết nối được.
+- **Meta Business Suite → Settings → Integrations → Ads MCP server** (nếu menu hiện trên tài khoản): người có quyền đầy đủ có thể đặt rules cho phép/chặn loại thao tác, giới hạn ngân sách hoặc thay đổi. Khởi đầu nên chỉ **đọc**.
+- Trước khi cho AI tạo camp, đặt trạng thái **PAUSED** và bước duyệt độc lập cho mọi kích hoạt quảng cáo, đổi ngân sách/targeting và sửa camp đang chạy. Không tin vào prompt như lớp bảo vệ duy nhất.
+- Nếu xuất hiện `is_ads_mcp_enabled: false` hoặc bị từ chối OAuth, **không thử lấy cookie/scrape**; kiểm tra rollout, client support và quyền tài khoản trước.
+
+**Chi tiết đầy đủ:** [Meta Ads MCP + Marketing API v26.0, cách nối n8n/Muse/Webcake/GitHub, xác thực và approval](./META_MARKETING_API_AI_CAMPAIGN_GUIDE.md).
+
+**Dự phòng khi client không kết nối MCP chính thức:** Meta Marketing API REST theo docs Meta hoặc self-host [getmcpads-com/meta-ads-mcp-server](https://github.com/getmcpads-com/meta-ads-mcp-server) (bên thứ ba, phải tự audit source trước khi cho quyền ghi). Không dùng token ở repo công khai.
