@@ -17,7 +17,6 @@ services:
   paperclip:
     image: ghcr.io/paperclipai/paperclip:latest
     restart: unless-stopped
-    init: true
     pids_limit: 2048
     stop_grace_period: 90s
     ports:
