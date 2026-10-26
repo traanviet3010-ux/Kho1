@@ -79,6 +79,9 @@ class Relay(BaseHTTPRequestHandler):
             return self._reply(502, b'{"error":"Upstream unavailable"}')
         try:
             data = response.read(1048577)
+            # Public docs must point clients to this conventional DNS hostname.
+            if path in ("/docs", "/docs/", "/docs.md", "/docs/guide.md"):
+                data = data.replace(UPSTREAM.encode(), b"https://abcxxx-gateway.onrender.com")
             if len(data)>1048576:
                 return self._reply(502, b'{"error":"Upstream response exceeds limit"}')
             self.send_response(response.status)
