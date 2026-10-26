@@ -113,24 +113,6 @@ volumes:
 YAML
 (cd "$N8N" && docker compose -p ai-n8n --env-file .env up -d)
 
-echo "[5/5] Installing official Paperclip on localhost:3100"
-if test ! -d "$PC/.git"; then git clone -q --depth 1 https://github.com/paperclipai/paperclip.git "$PC"; fi
-test -f "$PC/docker/docker-compose.quickstart.yml" || fail "Paperclip compose file missing."
-if test ! -f "$PC/docker/.env"; then
-  cat > "$PC/docker/.env" <<EOF
-BETTER_AUTH_SECRET=$(openssl rand -hex 32)
-PAPERCLIP_TOOL_ACTION_SIGNING_SECRET=$(openssl rand -hex 32)
-PAPERCLIP_PORT=127.0.0.1:3100
-PAPERCLIP_DATA_DIR=../data/docker-paperclip
-PAPERCLIP_PUBLIC_URL=http://localhost:3100
-OPENAI_API_KEY=
-ANTHROPIC_API_KEY=
-EOF
-  chmod 600 "$PC/docker/.env"
-fi
-(cd "$PC" && docker compose -p ai-paperclip --env-file docker/.env -f docker/docker-compose.quickstart.yml up -d --build)
-docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
-echo "INSTALLED. Private ports: Paperclip 3100; n8n 5678; AI Gateway 8877."
-echo "Mac SSH tunnel: ssh -N -L 3100:127.0.0.1:3100 -L 5678:127.0.0.1:5678 USER@103.77.209.147"
-echo "Open http://localhost:3100 and http://localhost:5678 on your computer."
-echo "No API keys connected, no simulations. GitHub runner and MCP links require later configuration."
+echo "[5/5] Starting upstream prebuilt Paperclip (avoids Docker build OOM)."
+curl -fsSL https://raw.githubusercontent.com/traanviet3010-ux/Kho1/ai-business-os-installer-20261026/install/fix-paperclip-137.sh -o /tmp/ai-business-os-fix-paperclip.sh
+bash /tmp/ai-business-os-fix-paperclip.sh
